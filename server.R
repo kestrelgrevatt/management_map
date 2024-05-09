@@ -10,6 +10,8 @@ library(dbscan)
 library(geosphere)
 library(magrittr)
 library(raster)
+library(htmlwidgets)
+library(htmltools)
 
 
 shinyServer(function(input, output) {
@@ -63,28 +65,88 @@ shinyServer(function(input, output) {
       )))
   
   #create color pallet for map
-  pal1 <- colorFactor(pal = c("#1b9e77", "#d95f02", "#7570b3"), domain = compartment$TYPE2)
+  pal1 <- colorFactor(pal = c("#AD2942", "#d95f02", "#9677BB"), domain = compartment$TYPE2)
+  
+  #create custom title using HTML
+  tag.map.title <- tags$style(HTML("
+  .leaflet-control.map-title { 
+    transform: translate(-680px,10px);
+    position: fixed !important;
+    left: 50%;
+    text-align: center;
+    padding-left: 12px; 
+    padding-right: 12px; 
+    background: #D4D5CF;
+    color: #0E1180;
+    font-weight: bold;
+    font-size: 30px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -o-border-radius: 10px;
+    -ms-border-radius: 10px;
+    border-radius: 10px
+    }
+    "))
+  title <- tags$div(
+      tag.map.title, HTML("Blodgett Forest Compartments")
+    )  
+  
+  #create custom subtitle using HTML
+  tag.map.subtitle <- tags$style(HTML("
+  .leaflet-control.map-subtitle { 
+    transform: translate(-500px,70px);
+    position: fixed !important;
+    left: 50%;
+    text-align: center;
+    padding-left: 12px; 
+    padding-right: 12px; 
+    background: #D4D5CF;
+    color: #0E1180;
+    font-weight: bold;
+    font-size: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -o-border-radius: 10px;
+    -ms-border-radius: 10px;
+    border-radius: 10px
+    }
+    "))
+  
+  subtitle <- tags$div(
+    tag.map.subtitle, HTML("Click & Hover for Details")
+  )  
   
   # create the leaflet map  
   output$compartment <- renderLeaflet({
     leaflet(compartment) |>
       setView(
-        lng = -120.65965, 
+        lng = -120.663, 
         lat = 38.905, 
         zoom = 13
       )|>
       addPolygons(
         data = bound,
         color = "blue",
+        opacity = 1,
         weight = 3,
         fillColor = "blue",
         fillOpacity = 0.0,
         group = "Property Boundary",
       ) |>
-      addPolygons(data = compartment,
+      addPolygons(
+        data = compartment,
+        color = "#D9310D",
+        weight = 2,
+        fillColor = "blue",
+        fillOpacity = 0.0,
+        smoothFactor = 0.2, 
+        group = "Compartment Boundaries"
+        ) |>
+      addPolygons(
+        data = compartment,
         weight = 2, 
         smoothFactor = 0.2, 
-        fillOpacity = 0.8,
+        fillOpacity = 0.6,
         fillColor = ~pal1(compartment$TYPE2),
         group = "Compartments",
         label = compartment$TYPE2,
@@ -117,13 +179,26 @@ shinyServer(function(input, output) {
           "OpenStreetMap", "Esri: WorldStreetMap", "Esri: WorldImagery"
           ),
         overlayGroups = c(
-          "Property Boundary", "Compartments"
+          "Compartments", "Compartment Boundaries", "Property Boundary"
           ),
         position = "topleft",
-        options = layersControlOptions()
+        options = layersControlOptions(
+          collapsed = FALSE
+          )
         ) |>
-      addMiniMap(position="topright"
-      )
+      addMiniMap(
+        position="topright"
+        ) |>
+      addControl(
+        title, 
+        position="topleft",
+        className="map-title"
+        ) |>
+      addControl(
+        subtitle, 
+        position="topleft",
+        className="map-subtitle"
+        )
   })
   
   #create a data object to display data

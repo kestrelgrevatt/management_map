@@ -129,11 +129,8 @@ shinyServer(function(input, output) {
   #create a data object to display data
   
   output$data <-DT::renderDataTable(datatable(
-    compartment[5,4]
-    #colnames = c( "Compartment Number", "Size (acres)", "Silviculture", "Management Allocation", "Most Recent Inventory", "Last Plant Date", "Last Harvest Date")
+    compartment
   ))
-  
-  #[5,6,7,9,10,13,16]
   
 })
 
